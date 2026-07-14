@@ -36,9 +36,24 @@ function electronBuilderCli() {
   return path.join(path.dirname(pkgJson), rel)
 }
 
+function isCrossCompile() {
+  const cliArgs = process.argv.slice(2)
+  const platformFlags = ["--linux", "--mac", "--win"]
+  for (let i = 0; i < cliArgs.length; i++) {
+    if (platformFlags.includes(cliArgs[i])) {
+      const target = cliArgs[i].slice(2)
+      if (target === "linux" && process.platform !== "linux") return true
+      if (target === "mac" && process.platform !== "darwin") return true
+      if (target === "win" && process.platform !== "win32") return true
+      return false
+    }
+  }
+  return false
+}
+
 const dist = electronDistDir()
 const args = []
-if (dist && fs.existsSync(distBinary(dist))) {
+if (dist && !isCrossCompile() && fs.existsSync(distBinary(dist))) {
   args.push(`-c.electronDist=${dist}`)
 } else {
   console.warn(
